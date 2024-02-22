@@ -1,4 +1,5 @@
 import argparse
+import json
 from typing import List
 
 import tensorflow as tf
@@ -48,12 +49,21 @@ def inference(model: str , image_paths: List[str]) -> None:
     """
     model = tf.saved_model.load(model)
 
+    # Initialize an empty dictionary to store results
+    results = {}
+
     for image_path in image_paths:
         image = read_image(image_path)
 
         preds = model([image])
 
-        print(f'Probability: {100 * tf.get_static_value(preds[0])[0]:.2f}% - {image_path}')
+        # Convert the probability to a percentage and format it
+        probability = tf.get_static_value(preds[0])[0]
+
+        # Use the image path as the key and the formatted probability as the value
+        results[image_path] = int(probability * 100)
+
+    print(json.dumps(results))
 
 
 if __name__ == '__main__':
